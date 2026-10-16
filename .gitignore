@@ -1,0 +1,4 @@
+venv/
+local_dataset/
+embeddings/
+__pycache__/
