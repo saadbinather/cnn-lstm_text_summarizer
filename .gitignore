@@ -2,3 +2,10 @@ venv/
 local_dataset/
 embeddings/
 __pycache__/
+venv/
+__pycache__/
+*.h5
+*.pt
+*.csv
+*.zip
+*.tar.gz
