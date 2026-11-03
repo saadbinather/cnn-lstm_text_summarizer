@@ -2,7 +2,7 @@
 
 This repository is the research artifact associated with **“A Hybrid Hierarchical 1D-CNN-BiLSTM Framework for Extractive Summarization of Biomedical and Clinical Text”** ([arXiv:2609.13481](https://arxiv.org/abs/2609.13481)). It explores extractive summarization for PubMed articles, MIMIC-CXR reports, and MIMIC-IV Brief Hospital Course notes.
 
-> **Reproducibility status:** this checkout is an incomplete research snapshot, not a fully reproducible release. The code and saved checkpoints do not consistently implement the four-layer, sentence-level system described in the paper. Do not use the paper's tables as reproduced results from this checkout. See [CAMERA_READY_AUDIT.md](CAMERA_READY_AUDIT.md) before citing or running the code.
+> **Reproducibility status:** this checkout is an incomplete research snapshot, not a fully reproducible release. The code and saved checkpoints do not consistently implement the four-layer, sentence-level system described in the paper. Do not use the paper's tables as reproduced results from this checkout. See [the camera-ready audit](docs/CAMERA_READY_AUDIT.md) and [Experiment 01 findings](results/experiment_01_rouge_verification/FINDINGS.md) before citing or running the code.
 
 ## Method overview
 
@@ -52,7 +52,7 @@ The PubMed validation and test slices retained locally contain 3,000 unique docu
 
 ## Preprocessing and supervision
 
-PubMed records already contain sentence lists and dataset-provided `score` arrays. `embeddings.py` saves those scores as labels; this repository contains no oracle-label construction algorithm or provenance documentation.
+PubMed records already contain sentence lists plus distinct `label` and `score` arrays. `src/embeddings.py` saves `score`, not `label`. Experiment 01 verified that the saved arrays exactly match the dataset `label` arrays in 0/3,000 test rows and that their lengths usually do not equal the source sentence count. This repository contains no oracle-label construction algorithm or provenance documentation.
 
 There is an important implementation defect in the saved PubMed pipeline. `embeddings.py` joins each document's sentences into one string, tokenizes the entire string to 512 **tokens**, and stores all token hidden states with a token attention mask. Training and evaluation then interpret those positions as 512 **sentences** and align sentence labels to them. Consequently, the saved PubMed tensors are not sentence-level SciBERT `[CLS]` embeddings.
 
@@ -82,7 +82,7 @@ All evaluator scripts use `rouge-score`'s `RougeScorer` for ROUGE-1, ROUGE-2, an
 
 Reference construction differs by dataset:
 
-- PubMed: concatenate source sentences whose saved dataset score is at least 0.5. The dataset's `summary` field is not used.
+- PubMed: concatenate source sentences whose saved dataset score is at least 0.5. The genuine `summary` abstract is not used. On the first 300 test records, this creates only 3 non-empty references and silently skips the other 297.
 - MIMIC-CXR: use the parsed text after `Impression:` from the first report in each row.
 - MIMIC-IV BHC: use the CSV `target` text.
 
@@ -97,7 +97,7 @@ Only one machine-readable text result is present:
 | CNN-only | 0.6339 | 0.6191 | 0.6312 |
 | LSTM-only | 0.6766 | 0.6712 | 0.6766 |
 
-Source: `ablation_results.txt` (SHA-256 `723da0b649b6fff84417429947633a02e43c9ddada38ffb55dcf067cd2284f9e`). The file does not record dataset fingerprint, sample count, environment, seed, command, timestamp, or checkpoint hash. Its LSTM ROUGE-L value differs from the paper. All other plotted or paper-reported numbers lack raw saved outputs in this checkout and are **NOT VERIFIED**.
+Source: `results/legacy_metrics/ablation_results.txt` (SHA-256 `723da0b649b6fff84417429947633a02e43c9ddada38ffb55dcf067cd2284f9e`). The file does not record dataset fingerprint, sample count, environment, seed, command, timestamp, or checkpoint hash. Its LSTM ROUGE-L value differs from the paper. All other plotted or paper-reported numbers lack raw saved outputs in this checkout and are **NOT VERIFIED**.
 
 ## Installation
 
@@ -109,17 +109,15 @@ Create an isolated environment and install versions appropriate for your hardwar
 
 | Path | Purpose/status |
 |---|---|
-| `dataset.py` | downloads and preserves the provider's PubMed splits |
-| `embeddings.py` | creates saved PubMed tensors; contains the token/sentence mismatch described above |
-| `train_model.py` | trains the three-convolution main checkpoint |
-| `evaluate_model.py` | evaluates 500 PubMed records with the dynamic threshold |
-| `evaluate_baselines.py` | evaluates Lead-3 and Sumy TextRank on 300 PubMed records |
-| `cnn.py`, `lstm.py`, `ablation.py` | component-ablation training/evaluation paths |
-| `cnn_ablation.py` | depth evaluation; defines only three convolutions, so requested depths 3 and 4 execute the same graph |
-| `mimic.py`, `mimicIV.py` | clinical model evaluation with the 30% rule |
-| `mimicCXRbaseline.py`, `mimic4baseline.py` | clinical Lead-3/TextRank evaluation |
-| `bert.py`, `arxiv.py` | auxiliary backbone/domain transfer evaluations |
-| `CAMERA_READY_AUDIT.md` | evidence ledger, discrepancies, and missing reproducibility evidence |
+| `src/` | primary PubMed preparation, embedding, training, and evaluation programs |
+| `scripts/` | baselines, ablations, clinical evaluations, transfer tests, and figure helper |
+| `results/legacy_metrics/` | pre-existing saved metric text |
+| `results/legacy_figures/` | pre-existing figure artifacts |
+| `results/experiment_01_rouge_verification/` | ROUGE verification status, leakage findings, commands, and summary |
+| `results/checkpoints/` | symlink index to unchanged checkpoint files at repository root |
+| `docs/` | camera-ready audit and repository-layout documentation |
+
+Run existing programs from the repository root so their relative data/checkpoint paths are preserved, for example `python src/train_model.py` or `python scripts/evaluate_baselines.py`. Experiment 01 model evaluation is currently blocked because both test embedding chunks are missing; see its status file before attempting execution.
 
 ## Reproducibility checklist
 
