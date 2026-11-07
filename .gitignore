@@ -10,3 +10,7 @@ __pycache__/
 *.zip
 *.tar.gz
 *.md
+!README.md
+results/
+configs/
+docs/
