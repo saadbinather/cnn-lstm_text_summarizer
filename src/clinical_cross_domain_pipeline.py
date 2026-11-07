@@ -15,7 +15,7 @@ import json
 import random
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
 
 import nltk
 import numpy as np
@@ -28,6 +28,56 @@ from transformers import AutoModel, AutoTokenizer
 
 
 ROUGE_KEYS = ("rouge1", "rouge2", "rougeL")
+
+MIMIC_CXR_CONFIG = {
+    "domain": "mimic_cxr",
+    "dataset_csv": "mimic_cxr_data.csv",
+    "patient_id_column": "subject_id",
+    "source_column": "text",
+    "reference_column": None,
+    "parser": "mimic_cxr_findings_impression",
+    "scibert_model": "allenai/scibert_scivocab_uncased",
+    "output_dir": "results/cross_domain_full_sweep/mimic_cxr",
+    "seed": 42,
+    "train_fraction": 0.8,
+    "validation_fraction": 0.1,
+    "test_fraction": 0.1,
+    "max_sentences": 512,
+    "max_sentence_tokens": 128,
+    "oracle_sentences": 3,
+    "cnn_filters": 128,
+    "lstm_hidden": 128,
+    "learning_rate": 0.001,
+    "batch_size": 16,
+    "epochs": 10,
+    "selection_fraction": 0.3,
+    "minimum_selected_sentences": 3,
+}
+
+MIMIC_IV_BHC_CONFIG = {
+    "domain": "mimic_iv_bhc",
+    "dataset_csv": "local_data/mimic_iv_bhc.csv",
+    "patient_id_column": "subject_id",
+    "source_column": "input",
+    "reference_column": "target",
+    "parser": "direct_columns",
+    "scibert_model": "allenai/scibert_scivocab_uncased",
+    "output_dir": "results/cross_domain_full_sweep/mimic_iv_bhc",
+    "seed": 42,
+    "train_fraction": 0.8,
+    "validation_fraction": 0.1,
+    "test_fraction": 0.1,
+    "max_sentences": 512,
+    "max_sentence_tokens": 128,
+    "oracle_sentences": 3,
+    "cnn_filters": 128,
+    "lstm_hidden": 128,
+    "learning_rate": 0.001,
+    "batch_size": 16,
+    "epochs": 10,
+    "selection_fraction": 0.3,
+    "minimum_selected_sentences": 3,
+}
 
 
 @dataclass(frozen=True)
@@ -63,10 +113,14 @@ class HierarchicalSequentialSummarizer(nn.Module):
         return torch.sigmoid(self.classifier(hidden).squeeze(-1))
 
 
-def load_config(path: Path) -> dict:
-    config = json.loads(path.read_text(encoding="utf-8"))
+def load_config(source: Path | Mapping[str, object]) -> dict:
+    """Load a JSON configuration or copy an in-code domain configuration."""
+    if isinstance(source, Path):
+        config = json.loads(source.read_text(encoding="utf-8"))
+    else:
+        config = dict(source)
     required = {
-        "domain", "dataset_csv", "patient_id_column", "source_column", "parser",
+        "domain", "dataset_csv", "patient_id_column", "source_column", "reference_column", "parser",
         "scibert_model", "output_dir", "seed", "train_fraction", "validation_fraction",
         "test_fraction", "max_sentences", "max_sentence_tokens", "oracle_sentences",
         "cnn_filters", "lstm_hidden", "learning_rate", "batch_size", "epochs",
@@ -292,8 +346,8 @@ def evaluate_loss(model, loader, device: torch.device) -> float:
     return float(np.mean(losses)) if losses else float("nan")
 
 
-def train_domain(config_path: Path) -> None:
-    config = load_config(config_path)
+def train_domain(config_source: Path | Mapping[str, object]) -> None:
+    config = load_config(config_source)
     seed_everything(int(config["seed"]))
     output_dir = Path(config["output_dir"])
     checkpoint_dir = output_dir / "checkpoints"
@@ -355,8 +409,12 @@ def train_domain(config_path: Path) -> None:
     metadata_path.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
 
 
-def test_domain(config_path: Path, checkpoint: Path | None = None, run_name: str | None = None) -> None:
-    config = load_config(config_path)
+def test_domain(
+    config_source: Path | Mapping[str, object],
+    checkpoint: Path | None = None,
+    run_name: str | None = None,
+) -> None:
+    config = load_config(config_source)
     seed_everything(int(config["seed"]))
     checkpoint = checkpoint or Path(config["output_dir"]) / "checkpoints" / "best_validation_loss.pth"
     if not checkpoint.is_file():
