@@ -1,3 +1,5 @@
+"""Evaluate the archived summarizer on the ArXiv transfer dataset."""
+
 import torch
 import torch.nn as nn
 import numpy as np

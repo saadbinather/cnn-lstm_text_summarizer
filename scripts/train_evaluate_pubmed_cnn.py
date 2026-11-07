@@ -1,5 +1,12 @@
-import os, pickle, gc, torch
-import torch.nn as nn, torch.optim as optim
+"""Train and evaluate the archived CNN-only PubMed baseline."""
+
+import gc
+import os
+import pickle
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 from datasets import load_from_disk
 from rouge_score import rouge_scorer

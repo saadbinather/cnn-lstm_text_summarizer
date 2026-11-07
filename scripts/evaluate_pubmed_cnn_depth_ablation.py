@@ -1,3 +1,5 @@
+"""Evaluate the archived PubMed CNN-depth ablation."""
+
 import torch
 import numpy as np
 from datasets import load_from_disk

@@ -1,3 +1,5 @@
+"""Generate the archived qualitative PubMed method comparison."""
+
 import torch
 import numpy as np
 import pickle
@@ -64,7 +66,7 @@ def get_textrank_indices(sentences, top_k=3):
         scores = nx.pagerank(nx_graph, max_iter=500)
         ranked = sorted(((scores[i], i) for i in range(len(sentences))), reverse=True)
         return sorted([item[1] for item in ranked[:top_k]])
-    except:
+    except (ValueError, nx.PowerIterationFailedConvergence):
         return list(range(min(top_k, len(sentences))))
 
 # ==============================================================================

@@ -1,3 +1,5 @@
+"""Evaluate the archived hierarchical model on MIMIC-CXR reports."""
+
 import ast
 import torch
 import torch.nn as nn
@@ -79,7 +81,7 @@ def parse_mimic(text_list_str):
             impression = parts[1].strip()
             return findings, impression
         return None, None
-    except:
+    except (SyntaxError, TypeError, ValueError):
         return None, None
 
 # ==============================================================================

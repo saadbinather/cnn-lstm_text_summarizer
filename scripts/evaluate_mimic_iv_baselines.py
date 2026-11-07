@@ -1,3 +1,5 @@
+"""Evaluate archived Lead-3 and TextRank baselines on MIMIC-IV BHC."""
+
 import os
 import glob
 import pandas as pd
@@ -37,7 +39,7 @@ def textrank_summarize(text, top_k=3):
         top_indices = sorted([item[2] for item in ranked_sentences[:top_k]])
         
         return " ".join([sentences[i] for i in top_indices])
-    except:
+    except (ValueError, nx.PowerIterationFailedConvergence):
         # Fallback if matrix is empty/fails
         return " ".join(sentences[:top_k])
 

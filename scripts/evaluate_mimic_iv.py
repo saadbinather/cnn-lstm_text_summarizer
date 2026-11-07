@@ -1,3 +1,5 @@
+"""Evaluate the archived hierarchical model on MIMIC-IV BHC notes."""
+
 import os
 import glob
 import pandas as pd

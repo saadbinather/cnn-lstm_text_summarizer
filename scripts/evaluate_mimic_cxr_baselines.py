@@ -1,3 +1,5 @@
+"""Evaluate archived Lead-3 and TextRank baselines on MIMIC-CXR."""
+
 import ast
 import pandas as pd
 import numpy as np
@@ -37,7 +39,7 @@ def textrank_summarize(text, top_k=3):
         top_indices = sorted([item[2] for item in ranked_sentences[:top_k]])
         
         return " ".join([sentences[i] for i in top_indices])
-    except:
+    except (ValueError, nx.PowerIterationFailedConvergence):
         # Fallback if matrix is empty/fails
         return " ".join(sentences[:top_k])
 
@@ -62,7 +64,7 @@ def parse_mimic(text_list_str):
             impression = parts[1].strip()
             return findings, impression
         return None, None
-    except:
+    except (SyntaxError, TypeError, ValueError):
         return None, None
 
 # ==============================================================================

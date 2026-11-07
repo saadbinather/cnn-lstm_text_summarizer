@@ -1,5 +1,12 @@
-import os, pickle, gc, torch
-import torch.nn as nn, torch.optim as optim
+"""Train the archived LSTM-only PubMed baseline."""
+
+import gc
+import os
+import pickle
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")

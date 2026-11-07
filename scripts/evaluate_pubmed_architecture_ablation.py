@@ -1,3 +1,5 @@
+"""Evaluate archived PubMed architecture-ablation checkpoints."""
+
 import torch
 import pickle
 import numpy as np
