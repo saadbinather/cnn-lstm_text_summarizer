@@ -1,0 +1,13 @@
+{
+  "input": "results/pubmed_threshold_multiseed_evaluation/per_document_threshold_scores.csv",
+  "output_dir": "results/pubmed_ci_statistics",
+  "confidence_level": 0.95,
+  "bootstrap_resamples": 10000,
+  "seed": 42,
+  "reference_threshold_multiplier": 0.5,
+  "metrics": [
+    "rouge1_f1",
+    "rouge2_f1",
+    "rougeL_f1"
+  ]
+}
