@@ -1,6 +1,12 @@
-# Biomedical and Clinical Text Summarization
+# A Hybrid Hierarchical 1D-CNN-BiLSTM Framework for Extractive Summarization of Biomedical and Clinical Text
 
-This repository contains a biomedical extractive-summarization framework evaluated on PubMed research articles, MIMIC-CXR radiology reports, and MIMIC-IV Brief Hospital Course notes. It supports both in-domain and cross-domain experiments across scientific and clinical text.
+This repository contains a biomedical extractive-summarization framework.
+
+| Dataset | Domain | Description |
+| :--- | :--- | :--- |
+| **PubMed** | Scientific Literature | Research articles and abstracts |
+| **MIMIC-CXR** | Radiology | Radiology reports |
+| **MIMIC-IV** | Clinical | Brief Hospital Course notes |
 
 The pipeline encodes document content with SciBERT, applies sequential 1D-CNN layers for local feature extraction, and uses a bidirectional LSTM to score content for summary selection. The repository includes separate training and testing pipelines, threshold analyses, baseline comparisons, and ROUGE-based evaluation utilities.
 
